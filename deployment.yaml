@@ -1,33 +1,47 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: minikube-sample
+spec:
+  selector:
+    app: minikube-sample
+  ports:
+    - protocol: TCP
+      port: 8080
+      nodePort: 30083
+  type: NodePort
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myjavaapp-deployment
+  name: minikube-sample
+  namespace: default
 spec:
-  replicas: 3
   selector:
-    matchLabels:
-      app: myjavaapp
+      matchLabels:
+        app: minikube-sample
+
+  replicas: 1
   template:
     metadata:
       labels:
-        app: myjavaapp
+        app: minikube-sample
     spec:
       containers:
-      - name: myjavaapp
-        image: 600735812827.dkr.ecr.us-west-1.amazonaws.com/javasession2:latest
-        ports:
-        - containerPort: 8080
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: myjavaapp-service
-spec:
-  selector:
-    app: myjavaapp
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-  type: LoadBalancer
+        - name: minikube-sample
+          image: minikube-sample:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: env.namespace
+              value: default
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          configMap:
+            name: minikube-sample
